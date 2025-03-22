@@ -1,14 +1,14 @@
+use aide::{axum::ApiRouter, openapi::OpenApi};
+use axum::{Extension, routing::get};
+use openapi::api_document::docs_routes;
+use routes::auth::configure_auth_routes;
 use std::sync::Arc;
+use tokio::net::TcpListener;
 
 mod openapi;
 mod routes;
 
 use openapi::api_document::api_docs;
-
-use aide::{axum::ApiRouter, openapi::OpenApi};
-use axum::{Extension, routing::get};
-use openapi::api_document::docs_routes;
-use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() {
@@ -25,6 +25,7 @@ async fn main() {
     let app = ApiRouter::new()
         .route("/", get(|| async { "Hello world" }))
         .nest_api_service("/docs", docs_routes())
+        .nest_api_service("/api", configure_auth_routes())
         .finish_api_with(&mut api, api_docs)
         .layer(Extension(Arc::new(api)));
 

@@ -43,7 +43,7 @@ pub fn docs_routes() -> ApiRouter {
             "/",
             get_with(
                 Scalar::new("/docs/private/api.json")
-                    .with_title("Aide Axum")
+                    .with_title("Starlight API")
                     .axum_handler(),
                 |op| op.description("This documentation page."),
             ),
