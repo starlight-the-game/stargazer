@@ -1,0 +1,38 @@
+name: Rust
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/rust.yml"
+      - "src/**/*.rs"
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+
+      - name: Rust version check
+        shell: bash
+        run: |
+          rustup override set stable
+          cargo --version
+          rustc --version
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: cargo-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Smoke build
+        run: |
+          cargo build
