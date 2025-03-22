@@ -35,4 +35,4 @@ jobs:
 
       - name: Smoke build
         run: |
-          cargo build
+          cargo build --release
