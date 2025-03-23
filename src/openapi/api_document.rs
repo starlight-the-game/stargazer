@@ -1,40 +1,23 @@
-use std::sync::Arc;
-
-use crate::openapi;
-
 use aide::{
     axum::{
-        ApiRouter, IntoApiResponse,
-        routing::{get, get_with},
+        routing::{get, get_with}, ApiRouter,
+        IntoApiResponse,
     },
-    openapi::{OpenApi, Tag},
+    openapi::OpenApi,
     scalar::Scalar,
     transform::TransformOpenApi,
 };
-use axum::{Extension, Json, http::StatusCode, response::IntoResponse};
-
-use openapi::api_error::ApiError;
+use axum::{response::IntoResponse, Extension, Json};
+use std::sync::Arc;
 
 /// Populate the API documentation.
 pub fn api_docs(api: TransformOpenApi) -> TransformOpenApi {
     api.title("Starlight Open API")
         .summary("All endpoints of Starlight, whether you like it or not.")
         .description("Uhhh, yes...?")
-        .tag(Tag {
-            name: "starlight".into(),
-            description: Some("Dude...".into()),
-            ..Default::default()
-        })
-        .default_response_with::<Json<ApiError>, _>(|res| {
-            res.example(ApiError {
-                error: "some error happened".to_string(),
-                details: None,
-                status: StatusCode::IM_A_TEAPOT,
-            })
-        })
 }
 
-/// Populate the
+/// Populate the document routes.
 pub fn docs_routes() -> ApiRouter {
     aide::generate::infer_responses(true);
 
@@ -47,7 +30,7 @@ pub fn docs_routes() -> ApiRouter {
                     .axum_handler(),
                 |op| op.description("This documentation page."),
             ),
-            |p| p.security_requirement("ApiKey"),
+            |p| p.tag("Documentation"),
         )
         .route("/private/api.json", get(serve_docs));
 
