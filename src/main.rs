@@ -1,11 +1,15 @@
 use aide::{axum::ApiRouter, openapi::OpenApi};
-use axum::{Extension, routing::get};
+use axum::{routing::get, Extension};
 use openapi::api_document::docs_routes;
 use routes::auth::configure_auth_routes;
 use std::sync::Arc;
 use tokio::net::TcpListener;
+use tower_http::trace::TraceLayer;
+use tracing::{debug, error, Level};
 
 mod openapi;
+#[allow(dead_code, unused_imports)]
+mod prisma;
 mod routes;
 
 use openapi::api_document::api_docs;
@@ -13,10 +17,14 @@ use openapi::api_document::api_docs;
 #[tokio::main]
 async fn main() {
     aide::generate::on_error(|error| {
-        println!("{error}");
+        error!("{error}");
     });
 
     aide::generate::extract_schemas(true);
+
+    tracing_subscriber::fmt()
+        .with_max_level(Level::DEBUG)
+        .init();
 
     let mut api = OpenApi::default();
 
@@ -27,10 +35,11 @@ async fn main() {
         .nest_api_service("/docs", docs_routes())
         .nest_api_service("/api", configure_auth_routes())
         .finish_api_with(&mut api, api_docs)
-        .layer(Extension(Arc::new(api)));
+        .layer(Extension(Arc::new(api)))
+        .layer(TraceLayer::new_for_http());
 
-    println!("The application is on http://127.0.0.1:5000/ , nothing there by the way.");
-    println!("The docs is on http://127.0.0.1:5000/docs");
+    debug!("The application is on http://127.0.0.1:5000/");
+    debug!("The docs is on http://127.0.0.1:5000/docs");
 
     axum::serve(listener, app).await.unwrap();
 }
