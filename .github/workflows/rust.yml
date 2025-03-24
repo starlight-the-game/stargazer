@@ -9,6 +9,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  DATABASE_URL: file:./stargazer.sqlite
 
 jobs:
   rust:
@@ -32,6 +33,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           key: cargo-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Create Prisma database
+        run: |
+          cargo prisma db push
 
       - name: Smoke build
         run: |
