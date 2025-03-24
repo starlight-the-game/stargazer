@@ -7,6 +7,8 @@ use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use tracing::{Level, debug, error};
 
+mod auth;
+mod dto;
 mod openapi;
 #[allow(dead_code, unused_imports)]
 mod prisma;
