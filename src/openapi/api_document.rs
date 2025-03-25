@@ -1,13 +1,13 @@
 use aide::{
     axum::{
-        routing::{get, get_with}, ApiRouter,
-        IntoApiResponse,
+        ApiRouter, IntoApiResponse,
+        routing::{get, get_with},
     },
     openapi::OpenApi,
     scalar::Scalar,
     transform::TransformOpenApi,
 };
-use axum::{response::IntoResponse, Extension, Json};
+use axum::{Extension, Json, response::IntoResponse};
 use std::sync::Arc;
 
 /// Populate the API documentation.
