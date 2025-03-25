@@ -1,21 +1,26 @@
+use crate::dto::login::Login;
 use crate::prisma;
 use crate::prisma::player::Data as PlayerData;
 use async_trait::async_trait;
 use axum_login::{AuthnBackend, UserId};
-use password_auth::generate_hash;
+use password_auth::verify_password;
+use prisma::*;
 use prisma_client_rust::QueryError;
 use std::sync::Arc;
 
-use crate::dto::login::Login;
-use prisma::*;
-
 #[derive(Clone)]
-pub struct Backend {
+pub struct PrismaBackend {
     pub prisma_client: Arc<PrismaClient>,
 }
 
+impl PrismaBackend {
+    pub fn new(prisma_client: Arc<PrismaClient>) -> Self {
+        Self { prisma_client }
+    }
+}
+
 #[async_trait]
-impl AuthnBackend for Backend {
+impl AuthnBackend for PrismaBackend {
     type User = PlayerData;
     type Credentials = Login;
     type Error = QueryError;
@@ -26,15 +31,20 @@ impl AuthnBackend for Backend {
     ) -> Result<Option<Self::User>, Self::Error> {
         let db = self.prisma_client.as_ref();
 
-        Ok(db
+        let player = db
             .player()
-            .find_first(vec![
-                player::email::equals(email),
-                player::hashed_password::equals(generate_hash(password)),
-            ])
+            .find_first(vec![player::email::equals(email)])
             .exec()
             .await?
-        )
+            .unwrap();
+
+        let test_player = player.clone();
+
+        if verify_password(password, test_player.hashed_password.as_str()).is_err() {
+            return Ok(None);
+        }
+
+        Ok(Option::from(player))
     }
 
     async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
@@ -48,4 +58,4 @@ impl AuthnBackend for Backend {
     }
 }
 
-pub type AuthSession = axum_login::AuthSession<Backend>;
+pub type AuthSessionSimple = axum_login::AuthSession<PrismaBackend>;

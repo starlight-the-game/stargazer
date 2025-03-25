@@ -1,2 +1,2 @@
-mod auth_backend;
-mod auth_user;
+pub mod auth_backend;
+pub mod auth_user;
