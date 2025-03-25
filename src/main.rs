@@ -1,5 +1,7 @@
 use aide::{axum::ApiRouter, openapi::OpenApi};
 use axum::{Extension, routing::get};
+use axum_login::AuthManagerLayerBuilder;
+use axum_login::tower_sessions::{MemoryStore, SessionManagerLayer};
 use openapi::api_document::docs_routes;
 use routes::auth::configure_auth_routes;
 use std::sync::Arc;
@@ -14,8 +16,8 @@ mod openapi;
 mod prisma;
 mod routes;
 
+use crate::auth::auth_backend::PrismaBackend;
 use openapi::api_document::api_docs;
-use crate::prisma::PrismaClient;
 
 #[tokio::main]
 async fn main() {
@@ -29,12 +31,23 @@ async fn main() {
         .with_max_level(Level::DEBUG)
         .init();
 
-    let prisma_client = Arc::new(prisma::new_client()
-        .await
-        .expect("Failed to create Prisma client")
+    // ============== actual code goes here. ==============
+
+    let session_store = MemoryStore::default();
+    let session_layer = SessionManagerLayer::new(session_store);
+
+    let prisma_client = Arc::new(
+        prisma::new_client()
+            .await
+            .expect("Failed to create Prisma client"),
     );
+
     let mut api = OpenApi::default();
     let listener = TcpListener::bind("0.0.0.0:5000").await.unwrap();
+
+    let backend_db = prisma_client.clone();
+    let backend = PrismaBackend::new(backend_db);
+    let auth_layer = AuthManagerLayerBuilder::new(backend, session_layer).build();
 
     let app = ApiRouter::new()
         .route("/", get(|| async { "Hello world" }))
@@ -42,7 +55,8 @@ async fn main() {
         .nest_api_service("/api", configure_auth_routes())
         .finish_api_with(&mut api, api_docs)
         .layer(Extension(Arc::new(api)))
-        .layer(Extension(prisma_client))
+        .layer(Extension(prisma_client.clone()))
+        .layer(auth_layer)
         .layer(TraceLayer::new_for_http());
 
     debug!("The application is on http://127.0.0.1:5000/");

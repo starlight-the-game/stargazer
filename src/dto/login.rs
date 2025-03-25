@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-/// A register request.
+/// A login request.
 #[derive(Serialize, Clone, Deserialize, JsonSchema)]
 pub struct Login {
     /// Your email.
