@@ -1,15 +1,14 @@
 # Stargazer
 
-The backend side of Starlight. Completely rewritten from scratch from its C# counterpart.
+The backend side of Starlight. *Maybe* it is blazingly-fast 🚀🔥🔥
 
-*Maybe* it is blazingly-fast
-🚀🔥🔥
+Completely rewritten from scratch pursuing feature parity
+from [its C# counterpart](https://github.com/starlight-the-game/starlight/tree/c317231d213dad168ffb18388db17ef227490cd3/Starlight.Backend).
 
 ## Requirements
 
 - Rust, of course.
 - MSRV is `Rust 1.85.1`.
-    - I wrote the code on GNU ABI *so far*, so saved you a hassle of installing VS Build Tools.
 
 ## Note
 

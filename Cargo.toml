@@ -1,8 +1,15 @@
 [package]
 name = "stargazer"
+description = "The server portion of Starlight 🚀🔥"
 version = "0.1.0"
-edition = "2024"
+homepage = "https://github.com/starlight-the-game/stargazer"
+license = "MIT"
+authors = [
+    "Tien Dat Pham <dat20036@gmail.com>"
+]
 default-run = "stargazer"
+edition = "2024"
+publish = false
 
 [dependencies]
 aide = { version = "0.14.2", features = ["scalar", "axum-json", "macros"] }
